@@ -4,6 +4,35 @@
  * verified and edited in one place.
  */
 
+/** Placeholder origin, used until NEXT_PUBLIC_SITE_URL points at the live domain. */
+const PLACEHOLDER_SITE_URL = 'https://electricorellc.com';
+
+/**
+ * Resolves the canonical origin from the environment.
+ *
+ * `??` is not enough on its own: a hosting dashboard happily stores an
+ * environment variable as an empty string (name added, value left blank, or
+ * cleared later), and `??` only falls back for null and undefined. An empty
+ * `site.url` is passed to `new URL()` in app/layout.tsx, which throws
+ * ERR_INVALID_URL and fails the production build. A blank or malformed value
+ * therefore falls back to the placeholder with a warning, and `origin` drops
+ * any trailing slash that would double up when paths are appended.
+ */
+function resolveSiteUrl(raw: string | undefined): string {
+  const value = raw?.trim();
+  if (!value) return PLACEHOLDER_SITE_URL;
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    console.warn(
+      `[site] NEXT_PUBLIC_SITE_URL is not a valid absolute URL (got ${JSON.stringify(value)}). ` +
+        `Falling back to ${PLACEHOLDER_SITE_URL}.`,
+    );
+    return PLACEHOLDER_SITE_URL;
+  }
+}
+
 export const site = {
   name: 'ElectriCore',
   legalName: 'ElectriCore LLC',
@@ -45,9 +74,10 @@ export const site = {
 
   /**
    * Canonical origin. Set NEXT_PUBLIC_SITE_URL in the hosting environment
-   * once the real domain is live.
+   * once the real domain is live. An empty or unusable value falls back to
+   * the placeholder rather than breaking the build.
    */
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://electricorellc.com',
+  url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
 } as const;
 
 export const navigation = [

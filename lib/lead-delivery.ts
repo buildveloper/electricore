@@ -13,16 +13,29 @@ export type ChannelResult = {
   detail?: string;
 };
 
+/**
+ * Reads a string variable and treats blank the same as unset.
+ *
+ * `??` alone would let an empty value through — a variable added in the
+ * hosting dashboard with no value is `''`, not undefined — and that produces
+ * `from: ''` in Resend or `To: ''` in Twilio instead of the intended default.
+ * Surrounding whitespace is stripped, so a stray newline from a copy-pasted
+ * value cannot corrupt a header or a phone number either.
+ */
+function envOr(name: string, fallback: string): string {
+  return process.env[name]?.trim() || fallback;
+}
+
 async function sendEmail(lead: Lead): Promise<ChannelResult> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) return { channel: 'email', status: 'skipped' };
 
   try {
     const { Resend } = await import('resend');
     const resend = new Resend(apiKey);
     const { error } = await resend.emails.send({
-      from: process.env.LEAD_FROM_EMAIL ?? 'ElectriCore Website <onboarding@resend.dev>',
-      to: process.env.LEAD_TO_EMAIL ?? site.email.display,
+      from: envOr('LEAD_FROM_EMAIL', 'ElectriCore Website <onboarding@resend.dev>'),
+      to: envOr('LEAD_TO_EMAIL', site.email.display),
       subject: `Quote request: ${lead.service} (${lead.name})`,
       text: formatLead(lead),
     });
@@ -34,10 +47,10 @@ async function sendEmail(lead: Lead): Promise<ChannelResult> {
 }
 
 async function sendSms(lead: Lead): Promise<ChannelResult> {
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_FROM_NUMBER;
-  const to = process.env.LEAD_TO_SMS ?? site.phone.e164;
+  const sid = process.env.TWILIO_ACCOUNT_SID?.trim();
+  const token = process.env.TWILIO_AUTH_TOKEN?.trim();
+  const from = process.env.TWILIO_FROM_NUMBER?.trim();
+  const to = envOr('LEAD_TO_SMS', site.phone.e164);
   if (!sid || !token || !from) return { channel: 'sms', status: 'skipped' };
 
   try {
@@ -66,7 +79,7 @@ async function sendSms(lead: Lead): Promise<ChannelResult> {
 }
 
 async function sendWebhook(lead: Lead): Promise<ChannelResult> {
-  const url = process.env.LEAD_WEBHOOK_URL;
+  const url = process.env.LEAD_WEBHOOK_URL?.trim();
   if (!url) return { channel: 'webhook', status: 'skipped' };
 
   try {
