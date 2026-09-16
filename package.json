@@ -1,0 +1,18 @@
+{
+  "name": "electricore-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Marketing website for ElectriCore LLC, a licensed and insured electrical contractor in Dunn, NC.",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "brand:assets": "node scripts/build-brand-assets.mjs",
+    "test:smoke": "node scripts/smoke.mjs",
+    "test:theme": "node scripts/check-theme.mjs"
+  }
+}

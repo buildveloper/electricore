@@ -1,0 +1,385 @@
+@import 'tailwindcss';
+
+/* ===========================================================================
+   ElectriCore design tokens
+   ---------------------------------------------------------------------------
+   Colour values are sampled directly from public/logo/electricore-logo.png by
+   scripts/build-brand-assets.mjs, not chosen by hand:
+
+     ground    #131927   the artwork's own background, measured at its corners
+     electric  #05c9e3   hue 187, saturation 98%   (the arc and circuitry)
+     copper    #fb8627   hue 27,  saturation 84%   (the coiled wire)
+
+   The canvas is the artwork's own ground, so the logo drops onto the page with
+   no visible edge and no plate. Surfaces and rules are stepped lightness on the
+   same blue-grey, so every value traces back to the artwork. See DESIGN.md.
+
+   Two palettes are defined once and mapped by context:
+     :root                                     dark  (the default theme)
+     [data-theme='light']                      light
+     [data-theme='dark'] [data-band='invert']  the opposite band, for rhythm
+   =========================================================================== */
+
+:root {
+  /* raw brand values, sampled from the logo file */
+  --brand-ground: #131927;
+  --brand-electric: #05c9e3;
+  --brand-copper: #fb8627;
+
+  /* dark palette */
+  --dark-canvas: #131927;
+  --dark-surface: #1a2233;
+  --dark-surface-2: #212b3e;
+  --dark-rule: #2b3548;
+  --dark-rule-strong: #3e4a61;
+  --dark-ink: #eaf0f7;
+  --dark-ink-2: #b4bfce;
+  --dark-ink-3: #8b96a8;
+  --dark-blue: #05c9e3;
+  --dark-copper: #fb8627;
+  --dark-on-accent: #131927;
+  --dark-grid-line: rgb(5 201 227 / 0.07);
+  --dark-sheen: rgb(5 201 227 / 0.05);
+
+  /* light palette */
+  --light-canvas: #f1f5f9;
+  --light-surface: #ffffff;
+  --light-surface-2: #e5ebf3;
+  --light-rule: #d0dae6;
+  --light-rule-strong: #afbcce;
+  --light-ink: #131927;
+  --light-ink-2: #2c3a4f;
+  --light-ink-3: #566378;
+  --light-blue: #0a6b80;
+  --light-copper: #a34a0c;
+  --light-on-accent: #ffffff;
+  --light-grid-line: rgb(19 25 39 / 0.06);
+  --light-sheen: rgb(19 25 39 / 0.04);
+
+  --canvas: var(--dark-canvas);
+  --surface: var(--dark-surface);
+  --surface-2: var(--dark-surface-2);
+  --rule: var(--dark-rule);
+  --rule-strong: var(--dark-rule-strong);
+  --ink: var(--dark-ink);
+  --ink-2: var(--dark-ink-2);
+  --ink-3: var(--dark-ink-3);
+  --blue: var(--dark-blue);
+  --copper: var(--dark-copper);
+  --on-accent: var(--dark-on-accent);
+  --grid-line: var(--dark-grid-line);
+  --sheen: var(--dark-sheen);
+
+  color-scheme: dark;
+}
+
+/* Light theme, and the inverted band inside the dark theme. */
+[data-theme='light'],
+[data-theme='dark'] [data-band='invert'] {
+  --canvas: var(--light-canvas);
+  --surface: var(--light-surface);
+  --surface-2: var(--light-surface-2);
+  --rule: var(--light-rule);
+  --rule-strong: var(--light-rule-strong);
+  --ink: var(--light-ink);
+  --ink-2: var(--light-ink-2);
+  --ink-3: var(--light-ink-3);
+  --blue: var(--light-blue);
+  --copper: var(--light-copper);
+  --on-accent: var(--light-on-accent);
+  --grid-line: var(--light-grid-line);
+  --sheen: var(--light-sheen);
+
+  color-scheme: light;
+}
+
+/* The inverted band inside the light theme goes back to dark. */
+[data-theme='light'] [data-band='invert'] {
+  --canvas: var(--dark-canvas);
+  --surface: var(--dark-surface);
+  --surface-2: var(--dark-surface-2);
+  --rule: var(--dark-rule);
+  --rule-strong: var(--dark-rule-strong);
+  --ink: var(--dark-ink);
+  --ink-2: var(--dark-ink-2);
+  --ink-3: var(--dark-ink-3);
+  --blue: var(--dark-blue);
+  --copper: var(--dark-copper);
+  --on-accent: var(--dark-on-accent);
+  --grid-line: var(--dark-grid-line);
+  --sheen: var(--dark-sheen);
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+
+  --color-blue: var(--blue);
+  --color-copper: var(--copper);
+  --color-on-accent: var(--on-accent);
+  --color-brand: var(--brand-ground);
+  --color-electric: var(--brand-electric);
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* Deliberately tight radii. This is drawn hardware, not bubble UI. */
+  --radius-plate: 3px;
+  --radius-control: 5px;
+  --radius-panel: 8px;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* clears the sticky header when jumping to #anchors */
+    scroll-padding-top: 5.5rem;
+    -webkit-text-size-adjust: 100%;
+    background-color: var(--canvas);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color 250ms ease, color 250ms ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Always visible, always high contrast. */
+  :focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+    border-radius: var(--radius-plate);
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--blue) 30%, transparent);
+    color: var(--ink);
+  }
+
+  /* Kill non-essential motion for people who ask for it. Delays are zeroed too,
+     otherwise a delayed entrance would leave content hidden for a moment. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-delay: 0s !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      transition-delay: 0s !important;
+    }
+  }
+}
+
+@layer components {
+  /* ---- layout ---------------------------------------------------------- */
+  .shell {
+    width: 100%;
+    max-width: 78rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .shell {
+      padding-inline: 2.5rem;
+    }
+  }
+
+  /* ---- typography ------------------------------------------------------ */
+  /* Wire-label / panel-schedule voice: the technical through-line. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .display {
+    font-stretch: 93%;
+    font-weight: 700;
+    letter-spacing: -0.028em;
+    line-height: 0.96;
+  }
+
+  .display-sm {
+    font-stretch: 95%;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+  }
+
+  /* ---- decorative ------------------------------------------------------ */
+  .blueprint {
+    background-image: linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  /* Fades the grid out at the edges so it reads as texture, not wallpaper. */
+  .blueprint-fade {
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 10%, transparent 75%);
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 10%, transparent 75%);
+  }
+
+  /* The artwork carries its own deep navy ground, which is the page canvas, so
+     on the dark theme it needs no plate at all: it reads as one object with the
+     surface behind it. On the light theme it gets its ground back. */
+  .logo-plate {
+    background-color: transparent;
+  }
+
+  [data-theme='light'] .logo-plate {
+    background-color: var(--brand-ground);
+  }
+
+  [data-theme='light'] [data-band='invert'] .logo-plate {
+    background-color: transparent;
+  }
+
+  /* ---- motion primitives ----------------------------------------------- */
+  /* Oddly specific to <details>: animates the native disclosure. */
+  .zoom-frame img {
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .zoom-frame:hover img,
+  .zoom-frame:focus-visible img {
+    transform: scale(1.045);
+  }
+
+  /* The single orchestrated entrance. Everything else is interaction-driven. */
+  .rise {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: rise 720ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  @keyframes rise {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Electric pulse on interactive controls: a ripple sheen that opens out plus
+     a one-shot ring. Replaces a flat colour-swap hover. */
+  .btn-electric {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .btn-electric::after {
+    content: '';
+    position: absolute;
+    inset: -60%;
+    /* Sits above the button's own background but below the label, which is
+       wrapped in a positioned span for exactly this reason. */
+    z-index: 0;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at center,
+      color-mix(in oklab, var(--blue) 60%, transparent) 0%,
+      transparent 62%
+    );
+    opacity: 0;
+    transform: scale(0.35);
+    transition: opacity 300ms ease, transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+
+  .btn-electric:hover::after,
+  .btn-electric:focus-visible::after {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+
+  .btn-electric:hover,
+  .btn-electric:focus-visible {
+    animation: electric-ring 900ms ease-out;
+  }
+
+  @keyframes electric-ring {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--blue) 65%, transparent);
+    }
+    70% {
+      box-shadow: 0 0 0 9px color-mix(in oklab, var(--blue) 0%, transparent);
+    }
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--blue) 0%, transparent);
+    }
+  }
+
+  /* One-shot "power up" pulse for credential badges as they enter view. Written
+     as CSS so it can use the active theme's blue rather than a baked-in colour. */
+  .badge-pulse {
+    animation: badge-pulse 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes badge-pulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--blue) 55%, transparent);
+    }
+    38% {
+      transform: scale(1.14);
+      box-shadow: 0 0 20px 3px color-mix(in oklab, var(--blue) 42%, transparent);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zoom-frame img,
+    .zoom-frame:hover img,
+    .zoom-frame:focus-visible img {
+      transition: none;
+      transform: none;
+    }
+
+    .btn-electric:hover,
+    .btn-electric:focus-visible {
+      animation: none;
+    }
+
+    .badge-pulse {
+      animation: none;
+    }
+  }
+}
