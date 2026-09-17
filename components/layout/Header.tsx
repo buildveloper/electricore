@@ -65,7 +65,7 @@ export function Header() {
   return (
     <header
       className={cn(
-        'sticky top-0 z-50 border-b bg-canvas/95 transition-colors duration-300',
+        'sticky top-0 z-50 border-b bg-canvas transition-colors duration-300',
         scrolled ? 'border-rule' : 'border-transparent',
       )}
     >
@@ -150,7 +150,7 @@ export function Header() {
             transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-0 z-[60] flex flex-col bg-canvas lg:hidden"
           >
-            <div className="shell flex h-16 items-center justify-between border-b border-rule">
+            <div className="shell flex h-16 shrink-0 items-center justify-between border-b border-rule">
               <Logo />
               <button
                 type="button"
@@ -163,21 +163,29 @@ export function Header() {
               </button>
             </div>
 
-            <nav aria-label="Mobile" className="shell flex flex-1 flex-col justify-center gap-1">
-              {navigation.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  onClick={closeMenu}
-                  className="display-sm group flex items-center justify-between border-b border-rule py-5 text-2xl text-ink transition-colors hover:text-blue"
-                >
-                  {item.label}
-                  <ArrowRightIcon className="h-5 w-5 text-ink-3 transition-colors group-hover:text-blue" />
-                </a>
-              ))}
+            {/* min-h-0 + overflow-y-auto, with the centring on an inner wrapper
+                via `my-auto` rather than `justify-center`: rows stay centred in
+                portrait, and on a short viewport (a landscape phone) the list
+                scrolls inside the panel instead of overflowing it and pushing
+                the links and buttons out of reach. Centring a scroll container
+                with `justify-center` would clip the first row instead. */}
+            <nav aria-label="Mobile" className="shell flex min-h-0 flex-1 flex-col overflow-y-auto">
+              <div className="my-auto flex flex-col gap-1">
+                {navigation.map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeMenu}
+                    className="display-sm group flex items-center justify-between border-b border-rule py-5 text-2xl text-ink transition-colors hover:text-blue"
+                  >
+                    {item.label}
+                    <ArrowRightIcon className="h-5 w-5 text-ink-3 transition-colors group-hover:text-blue" />
+                  </a>
+                ))}
+              </div>
             </nav>
 
-            <div className="shell flex flex-col gap-3 border-t border-rule py-6">
+            <div className="shell flex shrink-0 flex-col gap-3 border-t border-rule py-6">
               <Button href={site.phone.href} variant="secondary" size="lg">
                 <PhoneIcon className="h-5 w-5" />
                 Call {site.phone.display}

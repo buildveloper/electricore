@@ -41,7 +41,7 @@ export function StickyCta() {
           : { y: visible ? '0%' : '130%', opacity: visible ? 1 : 0 }
       }
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-rule bg-canvas/95 px-3 pt-3 backdrop-blur-sm md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-rule bg-canvas px-3 pt-3 md:hidden"
       style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
       <div className="flex items-stretch gap-2.5">
