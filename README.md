@@ -94,7 +94,7 @@ bucketing every visitor together.
 
    | Name | Value |
    | --- | --- |
-   | `NEXT_PUBLIC_SITE_URL` | the live domain, e.g. `https://electricorellc.com` |
+   | `NEXT_PUBLIC_SITE_URL` | *optional* — the live domain, e.g. `https://electricorellc.com` |
    | `RESEND_API_KEY` | from https://resend.com/api-keys |
    | `LEAD_TO_EMAIL` | `electricore247@gmail.com` |
    | `LEAD_FROM_EMAIL` | `ElectriCore Website <onboarding@resend.dev>` until the domain is verified in Resend |
@@ -107,9 +107,27 @@ bucketing every visitor together.
    the `onboarding@resend.dev` sandbox sender. That sandbox sender can only send
    to the address the Resend account was created with.
 
+### Canonical origin
+
 `NEXT_PUBLIC_SITE_URL` drives canonical URLs, `sitemap.xml`, `robots.txt` and
-social previews. Set it before launch or those will point at the placeholder
-domain.
+social previews, and it is **optional on Vercel**: the origin is derived from the
+deployment's system environment variables instead, so it does not have to be
+hard-coded. A production build uses the project's production domain — the
+`.vercel.app` address before a custom domain is assigned, and the custom domain
+afterwards — and a preview build points at its own host. Adding the domain in
+Vercel therefore updates the canonical URLs with no code change or redeploy of
+config.
+
+Set `NEXT_PUBLIC_SITE_URL` only to override that, for example to force `www`
+over the apex domain. It must be a valid absolute URL; a blank value is ignored,
+because a variable stored as an empty string would otherwise reach `new URL()`
+in `app/layout.tsx` and fail the build with `ERR_INVALID_URL`.
+
+After the first deploy, open `https://<your-deployment>/robots.txt` and confirm
+the `Sitemap:` line names the domain you expect. If it shows the placeholder
+`electricorellc.com`, the deployment had no usable Vercel origin — check that
+**Enable access to System Environment Variables** is ticked in the project's
+environment variable settings, and set `NEXT_PUBLIC_SITE_URL` explicitly.
 
 ---
 

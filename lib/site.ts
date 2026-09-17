@@ -4,33 +4,78 @@
  * verified and edited in one place.
  */
 
-/** Placeholder origin, used until NEXT_PUBLIC_SITE_URL points at the live domain. */
+/** Placeholder origin, used only when nothing better can be determined. */
 const PLACEHOLDER_SITE_URL = 'https://electricorellc.com';
 
 /**
- * Resolves the canonical origin from the environment.
+ * Reads a Vercel host variable as an origin.
  *
- * `??` is not enough on its own: a hosting dashboard happily stores an
- * environment variable as an empty string (name added, value left blank, or
- * cleared later), and `??` only falls back for null and undefined. An empty
- * `site.url` is passed to `new URL()` in app/layout.tsx, which throws
- * ERR_INVALID_URL and fails the production build. A blank or malformed value
- * therefore falls back to the placeholder with a warning, and `origin` drops
- * any trailing slash that would double up when paths are appended.
+ * VERCEL_URL, VERCEL_BRANCH_URL and VERCEL_PROJECT_PRODUCTION_URL hold a host
+ * only ("my-project.vercel.app"), with no scheme, and Vercel always serves
+ * HTTPS.
  */
-function resolveSiteUrl(raw: string | undefined): string {
-  const value = raw?.trim();
-  if (!value) return PLACEHOLDER_SITE_URL;
+function originFromHost(host: string | undefined): string | null {
+  const value = host?.trim();
+  if (!value) return null;
 
   try {
-    return new URL(value).origin;
+    return new URL(`https://${value}`).origin;
   } catch {
-    console.warn(
-      `[site] NEXT_PUBLIC_SITE_URL is not a valid absolute URL (got ${JSON.stringify(value)}). ` +
-        `Falling back to ${PLACEHOLDER_SITE_URL}.`,
-    );
-    return PLACEHOLDER_SITE_URL;
+    return null;
   }
+}
+
+/**
+ * Resolves the canonical origin, which drives metadataBase, the canonical
+ * link, robots.txt, the sitemap and the social preview image URLs.
+ *
+ * Order of precedence:
+ *
+ *   1. NEXT_PUBLIC_SITE_URL, when set to a valid absolute URL. This is the
+ *      deliberate override, for pinning www against the apex domain and the
+ *      like. A blank value is treated as unset: a hosting dashboard happily
+ *      stores a variable as an empty string (name added, value left blank, or
+ *      cleared later) and `??` alone would let that through, and an empty
+ *      string reaches `new URL()` in app/layout.tsx and fails the build with
+ *      ERR_INVALID_URL.
+ *   2. The Vercel system variables, so the canonical origin follows the
+ *      deployment instead of being hard-coded: a preview build points at its
+ *      own host, and production picks up the project's production domain,
+ *      which becomes the custom domain once one is assigned. This mirrors the
+ *      precedence Next.js itself uses for metadataBase.
+ *   3. The placeholder origin.
+ *
+ * `origin` normalises the result, so a trailing slash or a stray path cannot
+ * produce a doubled path when robots.txt and the sitemap append to it.
+ */
+function resolveSiteUrl(raw: string | undefined): string {
+  const explicit = raw?.trim();
+  if (explicit) {
+    try {
+      return new URL(explicit).origin;
+    } catch {
+      console.warn(
+        `[site] NEXT_PUBLIC_SITE_URL is not a valid absolute URL (got ${JSON.stringify(explicit)}); ignoring it.`,
+      );
+    }
+  }
+
+  const fromVercel =
+    process.env.VERCEL_ENV === 'preview'
+      ? originFromHost(process.env.VERCEL_BRANCH_URL) ?? originFromHost(process.env.VERCEL_URL)
+      : originFromHost(process.env.VERCEL_PROJECT_PRODUCTION_URL) ??
+        originFromHost(process.env.VERCEL_URL);
+
+  if (fromVercel) return fromVercel;
+
+  if (process.env.VERCEL) {
+    console.warn(
+      `[site] No canonical origin could be determined on Vercel, falling back to ${PLACEHOLDER_SITE_URL}. ` +
+        'Set NEXT_PUBLIC_SITE_URL to the live domain, and confirm System Environment Variables are enabled.',
+    );
+  }
+
+  return PLACEHOLDER_SITE_URL;
 }
 
 export const site = {
@@ -73,9 +118,10 @@ export const site = {
   },
 
   /**
-   * Canonical origin. Set NEXT_PUBLIC_SITE_URL in the hosting environment
-   * once the real domain is live. An empty or unusable value falls back to
-   * the placeholder rather than breaking the build.
+   * Canonical origin. On Vercel it is derived from the deployment, so a
+   * preview points at its own host and production points at the project's
+   * production domain (the custom domain once one is assigned). Set
+   * NEXT_PUBLIC_SITE_URL to override it, or on a host that is not Vercel.
    */
   url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
 } as const;
